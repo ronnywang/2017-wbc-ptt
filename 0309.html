@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>2017年經典賽 3/8 台灣 vs 荷蘭 PTT 記錄</title>
+<title>2017年經典賽 3/9 台灣 vs 韓國 PTT 記錄</title>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.2/bootstrap.min.js"></script>
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.2/css/bootstrap.css">
@@ -64,7 +64,7 @@
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 <script src="//d3js.org/d3.v3.min.js"></script>
 <div class="span6" style="min-width: 768px">
-<h3>2017/03/08 vs 荷蘭</h3>
+<h3>2017/03/09 vs 韓國</h3>
 <div id="placeholder" style="width:100%;height:300px;"></div>
 時間: <span id="time"></span>
 分局: <span id="inning"></span>
@@ -96,8 +96,8 @@ var line = d3.svg.line()
     .x(function(d) { return x(d[0]); })
     .y(function(d) { return y(d[1]); });
 
-d3.csv('0308.csv', function(count_records){
-$.get('0308.json', function(board_records){
+d3.csv('0309.csv', function(count_records){
+$.get('0309.json', function(board_records){
 
 // 把推文顯示出來
 for (var i= 0; i < board_records.length; i ++) {
