@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>2017年經典賽 3/7 台灣 vs 以色列 PTT 記錄</title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.2/bootstrap.min.js"></script>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.2/css/bootstrap.css">
+</head>
+<body>
+<div class="navbar">
+    <div class="navbar-inner">
+        <a class="brand" href="/">2017經典賽PTT記錄</a>
+        <ul class="nav">
+            <li>
+            <a href="/">首頁</a>
+            </li>
+            <li>
+            <a href="https://github.com/ronnywang/2017-wbc-ptt" target="_blank">程式+資料</a>
+            </li>
+            <li>
+            <a href="0307.html">3/7 vs 以色列</a>
+            </li>
+            <li>
+            <a href="0308.html">3/8 vs 荷蘭</a>
+            </li>
+        </ul>
+    </div>
+</div>
+<div class="container-fluid">
+    <div class="row-fluid">
+<style>
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+</style>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<div class="span6" style="min-width: 768px">
+<h3>2017/03/07 vs 以色列</h3>
+<div id="placeholder" style="width:100%;height:300px;"></div>
+時間: <span id="time"></span>
+分局: <span id="inning"></span>
+分局比分: <span id="score"></span>
+人氣: <span id="count"></span>
+<br>
+<script type="text/javascript">
+var week_day = {0: '日', 1: '一', 2: '二', 3: '三', 4: '四', 5: '五', 6: '六'};
+
+var margin = {top: 20, right: 20, bottom: 30, left: 50},
+    width = 800 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom;
+
+var x = d3.time.scale()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+var line = d3.svg.line()
+    .x(function(d) { return x(d[0]); })
+    .y(function(d) { return y(d[1]); });
+
+d3.csv('0307.csv', function(count_records){
+$.get('0307.json', function(board_records){
+
+// 把推文顯示出來
+for (var i= 0; i < board_records.length; i ++) {
+    var group_li_dom = $('<li></li>').attr({id: 'article-' + i, class: 'article'}).append(
+        $('<a></a>').attr('href', board_records[i].url).text(board_records[i].inning)
+    ).hide();
+
+    var push_ul_dom = $('<ul></ul>');
+
+    for (var j = 0; j < board_records[i].pushes.length; j ++) {
+        push_ul_dom.append(
+            $('<li></li>').text(board_records[i].pushes[j].text).data('time', board_records[i].pushes[j].time)
+        );
+    }
+    group_li_dom.append(push_ul_dom);
+
+    $('#push-history').append(group_li_dom);
+}
+var is_running = false;
+var svg = d3.select("#placeholder").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+      .on('mousemove', function(d, i){
+          if (is_running) {
+            return;
+          }
+          var d = x.invert(d3.mouse(this)[0] - path_dom[0][0].getBoundingClientRect().left + svg[0][0].getBoundingClientRect().left);
+          var c = bisectDate(data, d, 1);
+
+          $('#count').text(data[c][1]);
+          d = data[c][0];
+          $('#time').text(get_time(data[c][0]));
+
+          // 顯示分局數
+          for (var i = 0; i < board_records.length; i ++) {
+              if (d < board_records[i].time * 1000) {
+                break;
+             }
+          }
+          i = i - 1;
+          $('#inning').text(board_records[i].inning);
+          $('#score').text(board_records[i].score_a + ' : ' + board_records[i].score_b);
+          
+          if (!$('#push-history #article-' + i).is(':visible')) {
+              $('#push-history .article').hide();
+              $('#push-history #article-' + i).show();
+          }
+          // 跳到符合時間的推文
+          var match_li = false;
+          $('#push-history #article-' + i + ' li').each(function(){
+              if ($(this).data('time') * 1000 >= d) {
+                  match_li = this;
+                    return false;
+              }
+          });
+		  var offset = $(match_li).offset();
+		  $('#push-history').scrollTop($('#push-history').scrollTop() + offset.top);
+
+    
+      })
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+    data = count_records.map(function(record) { return [parseInt(record.time) * 1000, parseInt(record.count)]; });
+  x.domain(d3.extent(data, function(d) { return d[0]; }));
+  y.domain(d3.extent(data, function(d) { return d[1]; }));
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("人氣");
+
+  var get_time = function(t){
+      d = new Date;
+      d.setTime(t);
+      return d.getUTCFullYear() + '/' + (d.getMonth() + 1) + "/" + d.getDate() + '(' + week_day[d.getDay()] + ')' + d.getHours() + ':' + d.getMinutes();
+  };
+
+    bisectDate = d3.bisector(function(d) { return d[0]; }).left;
+
+  var path_dom = svg.append("path")
+      .datum(data)
+      .attr("class", "line")
+      .attr("d", line);
+
+      // 來畫分局顏色
+      var area_left = area_right = 0;
+      area_right = x(count_records[0].time * 1000);
+
+      for (var inning = 0; inning <= board_records.length; inning ++) {
+          area_left = area_right;
+          if (inning == board_records.length) {
+              area_right = x(count_records[count_records.length - 1].time * 1000);
+          } else {
+              area_right = x(board_records[inning].time * 1000);
+          }
+          area_width = area_right - area_left;
+
+          svg.append('rect').attr({
+              width: area_width,
+              height: height,
+              x: Math.max(area_left, 0),
+              y: 0,
+              opacity: 0.3,
+              fill: inning % 2 ? 'rgb(255,128,128)' : 'rgb(128,255,128)',
+              style: 'pointer-events: none',
+          });
+      }
+});
+});
+
+function type(d) {
+  d[0] = new Date(d[0]);
+  return d;
+}
+
+</script>
+<div class="span4">
+<h2>推文記錄</h2>
+<ul id="push-history" style="width: 600px; height: 300px; overflow: scroll"></ul>
+</div>
+</div><!-- .row-fluid -->
+</div><!-- .container -->
+</body>
+</html>
